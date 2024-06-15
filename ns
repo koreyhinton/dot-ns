@@ -1,0 +1,68 @@
+#!/bin/bash
+
+if [[ "$1" == "init" ]]; then
+    export NS_SHELL_PID=$$
+    mkdir -p /tmp/ns_${NS_SHELL_PID}
+    return 0;
+fi
+
+# since init is handled above, the possible options are:
+#     run
+#     export
+#     delete
+#     import
+subcommand="$1"
+shift;
+
+# for now assume 1 script has 1 ns import
+# todo: expand this later to do multiple ns import statements
+# also assume the full line is only this format: . ns import a b c
+if [[ "run" == "$subcommand" ]]; then
+    script="$1"
+    leading=". ns import "
+    leading_len=${#leading}
+    exps=$(grep "$leading" "$script" | head -1)
+    exps="${exps:$leading_len}"
+    # echo "$exps"
+    exps_arr=($exps)
+
+    . ns export "${exps_arr[@]}"
+    "$script"
+    ec=$?
+    . ns delete "${exps_arr[@]}"
+
+    leading=". ns export "
+    leading_len=${#leading}
+    exps=$(grep "$leading" "$script" | head -1)
+    exps="${exps:$leading_len}"
+    # echo "$exps"
+    exps_arr=($exps)
+    # . ns export "${exps_arr[@]}"
+    . ns import "${exps_arr[@]}"
+
+    return $ec
+fi
+
+ns_store=/tmp/ns_${NS_SHELL_PID}
+
+while [[ -n "$1" ]]
+do
+    par="$1"
+    if [[ "delete" == "$subcommand" ]]; then
+        rm "${ns_store}/" 2>>/dev/null
+        export -n "$1"
+        unset "$1"
+    elif [[ "export" == "$subcommand" ]]; then
+        # val=$(set | grep "${1}=" | head -1 | cut -d '=' -f2)
+        val="${!1}"
+        name="${1}"
+        echo "$val" > "${ns_store}/${name}"
+    elif [[ "import" == "$subcommand" ]]; then
+        name="$1"
+        val=$(cat "${ns_store}/${name}")
+        export "${name}=${val}"
+    fi
+
+    shift;
+
+done

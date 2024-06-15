@@ -1,0 +1,52 @@
+DOT NAMESPACER
+
+The included (dot) ns script is a proof of concept to enable user-specified parameter sharing across bash scripts in place of a few different alternatives:
+- dot/source commands (has to share all parameters)
+- argument passing (arguments have size limits and naming them requires a re-map)
+- reading from stdin (only easily accomplished for 1 input pipe, but is more challenging to handle multiple large inputs) if flow control isn't needed
+
+Namespace enforcement is up to the user, but ideally script names and their associated variables would share the same naming prefix, and each invoked script could just have top-level statements if desired.
+
+EXAMPLE
+# pb (path builder) namespace example
+# (in this example both scripts would have exported all that they imported,
+# which gives a nice clean variable and command grouping)
+
+pb_add_path=backups;
+pb_delim="/"
+pb_delim_on_empty=Y
+pb_path="${PWD}"
+
+. ns run pb_remove_last
+. ns run pb_add
+
+echo "$pb_path"
+
+# If $PWD was /home/git: it removes last path component and then adds backups
+# '/home/git' -> '/home' -> '/home/backups'
+
+# If $PWD was /: it would have removed the last component but delimit on empty is set to Yes so it becomes the delimiter and then adds backups
+# '/' -> '/' -> '/backups'
+
+HOW TO TEST NS ON THE SHELL
+	# cd into the ns directory
+	PATH="${PATH}:${PWD}"
+	. ns init
+	test_hello=hello
+	test_world=world
+	. ns run test_script
+	echo "$test_output"
+        echo "non-exported script variables do not get set: delim=${delim}"
+	echo "test_hello should be unset now: test_hello=${test_hello}"
+	echo "test_world should be unset now: test_world=${test_world}"
+
+# expected output
+hello, world
+non-exported script variables do not get set: delim=
+test_hello should be unset now: test_hello=
+test_world should be unset now: test_world=
+
+
+WHAT'S NEXT
+
+possibly script includes (however you can already invoke scripts that have been added to the PATH variable )

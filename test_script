@@ -1,0 +1,10 @@
+#!/bin/bash
+
+. ns import test_hello test_world
+
+# echo "running test_script"
+delim=,
+
+test_output="${test_hello}${delim} ${test_world}"
+
+. ns export test_output
