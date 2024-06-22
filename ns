@@ -18,7 +18,7 @@ shift;
 # todo: expand this later to do multiple ns import statements
 # also assume the full line is only this format: . ns import a b c
 if [[ "run" == "$subcommand" ]]; then
-    script="$1"
+    script=$(which "$1")
     leading=". ns import "
     leading_len=${#leading}
     exps=$(grep "$leading" "$script" | head -1)

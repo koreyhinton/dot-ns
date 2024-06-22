@@ -1,0 +1,7 @@
+#!/bin/bash
+
+. ns import exp_a
+
+((exp_a++))
+
+. ns export exp_a

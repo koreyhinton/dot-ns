@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# SPEC TYPE=FTR(BUGFIX) NS IMPORT/EXPORT CYCLE WORKS
+# bug fix: reference the script with the full script's path (from `which`
+#          command) rather than just the script name only
+#          (i.e., can't grep "spec1" from another directory,
+#          but you can grep using spec1's full path)
+
+script_path=$(realpath -s "$0")
+script_dir="${script_path%/*}"
+ns_dir_path=$(realpath "${script_dir}/../../")
+
+if [[ "$script_dir" == "${PWD}" ]]; then
+    cd ../  # bug is not reproducible if the scripts being `. ns run` are
+#           # in the same directory as the cwd
+fi
+
+PATH="${PATH}:${ns_dir_path}:${script_dir}"; \
+    . ns init
+
+exp_a=1
+. ns run exp_increment
+if [[ -n "$exp_a" && $exp_a -eq 2 ]]; then
+    :
+else
+    echo "fail => ${script_path}"
+    echo "$exp_a should be 2"
+fi
