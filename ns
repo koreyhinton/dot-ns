@@ -14,10 +14,15 @@ fi
 subcommand="$1"
 shift;
 
+save_subcommand=
+if [[ "$subcommand" == "run-piped" ]]; then
+    save_subcommand="$subcommand"
+fi
+
 # for now assume 1 script has 1 ns import
 # todo: expand this later to do multiple ns import statements
 # also assume the full line is only this format: . ns import a b c
-if [[ "run" == "$subcommand" ]]; then
+if [[ "run" == "$subcommand" || "run-piped" == "$subcommand" ]]; then
     script=$(which "$1")
     leading=". ns import "
     leading_len=${#leading}
@@ -27,7 +32,12 @@ if [[ "run" == "$subcommand" ]]; then
     exps_arr=($exps)
 
     . ns export "${exps_arr[@]}"
-    "$script"
+    if [[ "run-piped" == "$save_subcommand" ]]; then
+        "$script" </dev/stdin
+        # cat | "$script"
+    else
+        "$script"
+    fi
     ec=$?
     . ns delete "${exps_arr[@]}"
 

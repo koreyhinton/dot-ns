@@ -1,0 +1,8 @@
+#!/bin/bash
+
+. ns import exp_test
+
+exp_test=
+read exp_test <&0
+
+. ns export exp_test
