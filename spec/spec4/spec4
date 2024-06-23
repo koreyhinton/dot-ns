@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# SPEC TYPE=FTR SEQUENTIAL PIPES FOR PIPED INPUT
+
+script_path=$(realpath -s "$0")
+script_dir="${script_path%/*}"
+ns_dir_path=$(realpath "${script_dir}/../../")
+
+PATH="${PATH}:${ns_dir_path}:${script_dir}"; \
+    . ns init
+
+exp_result=
+result2=`. ns run-piped exp_a exp_b exp_c < <(echo test)`
+
+# Backtick syntax creates a different/sub shell,
+# while $$ might appear the same, they have different $BASHPID
+# see: https://stackoverflow.com/questions/31370156/why-commands-executed-inside-backticks-doesnt-affect-the-current-shell
+# ----
+# So to re-get the exported var from ``, have to re-import it:
+
+. ns import exp_result
+
+
+if [[ -n "$result2" && "$result2" == "aaaa" && "$exp_result" == "$result2" ]]; then
+    :
+else
+    echo "fail => ${script_path}"
+    echo "${result2} should be 'aaaa'"
+    echo "${exp_result} should be 'aaaa'"
+fi

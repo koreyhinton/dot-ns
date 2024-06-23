@@ -1,0 +1,12 @@
+#!/bin/bash
+
+. ns import exp_result
+
+while read line; do
+    # exp_result=$(echo "$line" | sed "s/t/a/g")
+    echo "$line" | sed "s/t/a/g"
+    # echo "$exp_result"
+done </dev/stdin
+
+exp_result=aaaa
+. ns export exp_result

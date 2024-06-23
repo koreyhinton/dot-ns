@@ -14,9 +14,11 @@ fi
 subcommand="$1"
 shift;
 
-save_subcommand=
+# save_subcommand=
 if [[ "$subcommand" == "run-piped" ]]; then
     save_subcommand="$subcommand"
+    save_argc=$#
+    save_args="$@"
 fi
 
 # for now assume 1 script has 1 ns import
@@ -32,9 +34,13 @@ if [[ "run" == "$subcommand" || "run-piped" == "$subcommand" ]]; then
     exps_arr=($exps)
 
     . ns export "${exps_arr[@]}"
-    if [[ "run-piped" == "$save_subcommand" ]]; then
+    if [[ "run-piped" == "$save_subcommand" && $save_argc -eq 1 ]]; then
         "$script" </dev/stdin
         # cat | "$script"
+    elif [[ "run-piped" == "$save_subcommand" && $save_argc -gt 1 ]]; then
+        e=$(echo "cat|${save_args}" | sed 's/ / | /g')
+        eval "$e"
+        # "$script" </dev/stdin
     else
         "$script"
     fi
@@ -71,6 +77,7 @@ do
         name="$1"
         val=$(cat "${ns_store}/${name}")
         export "${name}=${val}"
+        # echo "name=${name}, val=${val}."
     fi
 
     shift;

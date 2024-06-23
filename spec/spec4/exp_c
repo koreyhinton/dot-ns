@@ -1,0 +1,7 @@
+#!/bin/bash
+
+while read line; do
+    exp_result=$(echo "$line" | sed "s/s/a/")
+    echo "$exp_result"
+done </dev/stdin
+
