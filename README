@@ -2,10 +2,174 @@ DOT NAMESPACER
 
 The included (dot) ns script is a proof of concept to enable user-specified parameter sharing across bash scripts in place of a few different alternatives:
 - dot/source commands (has to share all parameters)
+- subshells (only easily passes back a single variable limited to saving stdout)
 - argument passing (arguments have size limits and naming them requires a re-map)
-- reading from stdin (only easily accomplished for 1 input pipe, but is more challenging to handle multiple large inputs) if flow control isn't needed
 
 Namespace enforcement is up to the user, but ideally script names and their associated variables would share the same naming prefix, and each invoked script could just have top-level statements if desired.
+
+FEATURE SPEC
+# test all specs:
+spec/run
+
+# To see all details of a particalar spec go to it's page, ie:
+# spec/spec1/spec1.
+# To run a similar test you'll need:
+#     - a dedicated folder
+#     - add the dedicated folder path and this repo folder to the PATH
+#     - run: . ns init
+# or just do this in the dot-ns repo folder:
+mkdir -p temp; PATH="${PATH}:${PWD}"; cd temp; PATH="${PATH}:${PWD}"; . ns init
+
+# then you can run the code
+. ns run my_script
+
+FEATURE 1 SPEC - SUMMARY - NS IMPORT/EXPORT CYCLE WORKS
+
+This feature specifies that variable(s) can be shared to another script and
+back again (full cycle), automatically applying the necessary imports and
+exports for the caller based on what the callee script has specified it intends
+to share (import/export).
+
+FEATURE 1 SPEC - EXAMPLE CODE
+
+# run this in dot-ns repo folder:
+mkdir -p temp; PATH="${PATH}:${PWD}"; cd temp; PATH="${PATH}:${PWD}"; . ns init
+
+# my_script's import line: retrieves my_var from storage
+# my_script's export line: saves my_var to storage
+cat << eof > my_script
+. ns import my_var
+my_var="\${my_var}c"
+. ns export my_var
+eof
+
+chmod +x my_script
+
+my_var=ab
+. ns run my_script     # before my_script invokes:
+#                      #     ns' run command will reads my_script's import line,
+#                      #     finds my_var and then saves it to storage
+#                      # after my_script invokes:
+#                      #     ns' run command will read my_script's export line
+#                      #     finds my_var and then retrieves it from storage
+echo "$my_var" # abc
+
+FEATURE 2 SPEC - SUMMARY - RECEIVE PIPE
+
+The run-piped command is used instead of run when you want to pipe stdin into
+the script.
+
+FEATURE 2 SPEC - EXAMPLE CODE
+
+# run this in dot-ns repo folder:
+mkdir -p temp; PATH="${PATH}:${PWD}"; cd temp; PATH="${PATH}:${PWD}"; . ns init
+
+# <&0 line will read from stdin file descriptor and store in my_var
+# export line saves my_var to storage so that run, run-piped, or import
+#     commands can bring it back to memory
+cat << eof > my_script
+read my_var <&0
+. ns export my_var
+eof
+
+chmod +x my_script
+
+. ns run-piped my_script < <(echo test)
+echo "$my_var" # test (and
+#              # run-piped automatically set this variable from export storage)
+
+# note: `echo test | . ns run-piped my_script` will not work since it will
+#     use storage associated with a subshell process id and then won't find
+#     that value when you try to `echo "$my_var"`.
+#     So, instead you can use <(process substitution) and pipe that as stdin: <
+
+FEATURE 3 SPEC - SUMMARY - PIPE TO EXTERNAL PROGRAM
+
+The output from ns run (or run-piped if taking in input), should be able to be
+redirected to an external (non-ns script) program.
+
+FEATURE 3 SPEC - EXAMPLE CODE
+
+# run this in dot-ns repo folder:
+mkdir -p temp; PATH="${PATH}:${PWD}"; cd temp; PATH="${PATH}:${PWD}"; . ns init
+
+cat << eof > my_script
+my_var=a
+echo "\$my_var"
+. ns export my_var
+eof
+
+chmod +x my_script
+
+. ns run my_script > >(sed "s/a/b/") #  prints b
+echo $my_var # prints a
+
+# note: `. ns run my_script | sed "s/a/b/"` will not work since it will
+#     use storage associated with a subshell process id and then won't find
+#     that value when you try to `echo "$my_var"`.
+#     So, instead you can use >(process substitution) and use stdout pipe: >
+
+FEATURE 4 SPEC - SUMMARY - SEQUENTIAL PIPES FOR PIPED INPUT
+
+The run-piped command runs a chain of piped scripts in the order given, ie:
+. ns run-piped a b c < <(echo test)
+=>
+echo test | a | b | c
+
+FEATURE 4 SPEC - EXAMPLE CODE
+
+cat << eof > my_script_a
+cat
+my_var=test2
+. ns export my_var
+eof
+
+cat << eof > my_script_b
+cat
+eof
+
+chmod +x my_script_a
+chmod +x my_script_b
+
+. ns run-piped my_script_a my_script_b < <(echo test)  # prints test
+# this ran something equivalent to:
+#    echo test | my_script_a | my_script_b
+# except the first script's (my_script_a) was able to export and run-piped
+# was able to auto-set it into memory of the caller
+echo "$my_var"  # prints test2
+
+# note: currently auto-setting values will only work for the 1st script in the
+#       piped script chain (pipeline), the subsequential scripts are being
+#       treated as 'additional' scripts to the main (first) script.
+
+FEATURE 5 SPEC - SUMMARY - SEQUENTIAL PIPES
+
+The run command runs a chain of piped scripts in the order given, ie:
+. ns run a b c
+=>
+a | b | c
+
+FEATURE 5 SPEC - EXAMPLE CODE
+
+cat << eof > my_script_a
+echo test
+my_var=test2
+. ns export my_var
+eof
+
+cat << eof > my_script_b
+cat
+eof
+
+chmod +x my_script_a
+chmod +x my_script_b
+
+. ns run my_script_a my_script_b # prints test
+# this ran something equivalent to:
+#    my_script_a | my_script_b
+# except the first script's (my_script_a) was able to export and run
+# was able to auto-set it into memory of the caller
+echo "$my_var"  # prints test2
 
 EXAMPLE
 # pb (path builder) namespace example

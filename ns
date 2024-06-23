@@ -19,6 +19,10 @@ if [[ "$subcommand" == "run-piped" ]]; then
     save_subcommand="$subcommand"
     save_argc=$#
     save_args="$@"
+elif [[ "$subcommand" == "run" ]]; then
+    save_subcommand="$subcommand"
+    save_argc=$#
+    save_args="$@"
 fi
 
 # for now assume 1 script has 1 ns import
@@ -41,6 +45,9 @@ if [[ "run" == "$subcommand" || "run-piped" == "$subcommand" ]]; then
         e=$(echo "cat|${save_args}" | sed 's/ / | /g')
         eval "$e"
         # "$script" </dev/stdin
+    elif [[ "run" == "$save_subcommand" && $save_argc -gt 1 ]]; then
+        e=$(echo "${save_args}" | sed 's/ / | /g')
+        eval "$e"
     else
         "$script"
     fi

@@ -1,0 +1,12 @@
+#!/bin/bash
+
+script_path=$(realpath -s "$0")
+script_dir="${script_path%/*}"
+
+for f in ${script_dir}/spec*/spec*
+do
+    if [[ "$f" =~ '~' ]]; then
+        continue
+    fi
+    "$f"
+done

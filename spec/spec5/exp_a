@@ -1,0 +1,8 @@
+#!/bin/bash
+
+. ns import exp_result
+
+echo "test" | sed "s/t/a/g"
+
+exp_result="aaaa"
+. ns export exp_result
