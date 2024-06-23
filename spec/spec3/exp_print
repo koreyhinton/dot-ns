@@ -1,0 +1,6 @@
+#!/bin/bash
+
+read exp_a </dev/stdin
+echo "$exp_a"
+
+

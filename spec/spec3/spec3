@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# SPEC TYPE=FTR PIPE TO EXTERNAL PROGRAM
+
+script_path=$(realpath -s "$0")
+script_dir="${script_path%/*}"
+ns_dir_path=$(realpath "${script_dir}/../../")
+
+PATH="${PATH}:${ns_dir_path}:${script_dir}"; \
+    . ns init
+
+exp_a=a
+
+result=`. ns run-piped exp_print < <(echo test) | sed "s/st/sts/" | cat`
+# result=`. ns run-piped exp_print < <(echo test) > >(sed "s/st/sts/" | cat)`
+# result=$(. ns run-piped exp_print < <(echo test) > >(sed "s/st/sts/" | cat))
+
+
+if [[ -n "$result" && "$result" == "tests" ]]; then
+    :
+else
+    echo "fail => ${script_path}"
+    echo "${result} should be 'tests'"
+fi
