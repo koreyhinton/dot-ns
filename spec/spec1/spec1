@@ -7,16 +7,12 @@
 #          but you can grep using spec1's full path)
 
 script_path=$(realpath -s "$0")
-script_dir="${script_path%/*}"
-ns_dir_path=$(realpath "${script_dir}/../../")
+. "${script_path%/*}/../setup"
 
 if [[ "$script_dir" == "${PWD}" ]]; then
     cd ../  # bug is not reproducible if the scripts being `. ns run` are
 #           # in the same directory as the cwd
 fi
-
-PATH="${PATH}:${ns_dir_path}:${script_dir}"; \
-    . ns init
 
 exp_a=1
 . ns run exp_increment

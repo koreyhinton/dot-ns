@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# SPEC TYPE=FTR(BUGFIX) INVERSE OF SPEC8 - NON-EXUCUTABLE VIEW CAN PRINT
+
+script_path=$(realpath -s "$0")
+. "${script_path%/*}/../setup"
+
+chmod -x "${script_dir}/json" # non-executable
+
+key1=store
+val1=storename
+keyval1=$(cat << EOF
+"customers": {}
+EOF
+)
+
+. ns view json > /dev/null
+ec=$?
+if [[ $ec -eq 0 ]]; then
+    :
+else
+    echo "fail => ${script_path}"
+    echo "${ec} (exit code) should be '0'"
+fi

@@ -26,7 +26,11 @@ elif [[ "$subcommand" == "run" ]]; then
 fi
 
 if [[ "view" == "$subcommand" ]]; then
-    view_path=$(which "$1")
+    view_path=$(NS_PATH="$NS_PATH" ns_which -x "$1")
+    if [[ ! -f "$view_path" ]]; then
+        echo "Error: '${1}' view file either does not exist or is requires removing the execute permission" 1>&2
+        exit 1
+    fi
     view=$(cat "$view_path")
     view_cat="cat << EOF"$'\n'"${view}"$'\n'"EOF"$'\n'
     eval "$view_cat"
@@ -44,7 +48,7 @@ fi
 # todo: expand this later to do multiple ns import statements
 # also assume the full line is only this format: . ns import a b c
 if [[ "run" == "$subcommand" || "run-piped" == "$subcommand" ]]; then
-    script=$(which "$1")
+    script=$(NS_PATH="$NS_PATH" ns_which +x "$1")
     leading=". ns import "
     leading_len=${#leading}
     exps=$(grep "$leading" "$script" | head -1)
@@ -57,12 +61,13 @@ if [[ "run" == "$subcommand" || "run-piped" == "$subcommand" ]]; then
         "$script" </dev/stdin
         # cat | "$script"
     elif [[ "run-piped" == "$save_subcommand" && $save_argc -gt 1 ]]; then
-        e=$(echo "cat|${save_args}" | sed 's/ / | /g')
-        eval "$e"
+        pipe_chain=$(NS_PATH="$NS_PATH" ARGS="${save_args}" ns_args_to_pipes)
+        pipe_chain="cat|${pipe_chain}"
+        eval "$pipe_chain"
         # "$script" </dev/stdin
     elif [[ "run" == "$save_subcommand" && $save_argc -gt 1 ]]; then
-        e=$(echo "${save_args}" | sed 's/ / | /g')
-        eval "$e"
+        pipe_chain=$(NS_PATH="$NS_PATH" ARGS="${save_args}" ns_args_to_pipes)
+        eval "$pipe_chain"
     else
         "$script"
     fi

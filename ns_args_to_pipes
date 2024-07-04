@@ -1,0 +1,16 @@
+#!/bin/bash
+
+args="$ARGS"
+piped=""
+for a in $args
+do
+    arg=$(ns_which "$a")
+    if [[ -z "$piped" ]]; then
+        piped="$arg"
+    else
+        piped="${piped} | ${arg}"
+    fi
+done
+echo "$piped"
+
+

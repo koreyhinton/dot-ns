@@ -27,7 +27,8 @@ script_path=$(realpath -s "$0")
 script_dir="${script_path%/*}"
 ns_dir_path=$(realpath "${script_dir}/../../")
 
-PATH="${PATH}:${ns_dir_path}:${script_dir}"; \
+PATH="${PATH}:${ns_dir_path}"; \
+NS_PATH="${script_dir}"; \
     . ns init
 
 chmod +x "${script_dir}/json"  # this is the test! json should be retrieved
@@ -35,7 +36,7 @@ chmod +x "${script_dir}/json"  # this is the test! json should be retrieved
 #                              # executable file named json
 #                              # should not use `which json`
 
-. ns view json >/dev/null
+. ns view json > /dev/null 2> /dev/null
 ec=$?  # we expect a non-zero status, this should have failed since we never
 #      # imported the json view file
 

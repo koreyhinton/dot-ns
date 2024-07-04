@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# run this as source with script_path already defined
+
+script_dir="${script_path%/*}"
+ns_dir_path=$(realpath "${script_dir}/../../")
+
+PATH="${PATH}:${ns_dir_path}"; \
+NS_PATH="${script_dir}"; \
+    . ns init

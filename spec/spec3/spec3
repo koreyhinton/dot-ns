@@ -3,11 +3,7 @@
 # SPEC TYPE=FTR PIPE TO EXTERNAL PROGRAM
 
 script_path=$(realpath -s "$0")
-script_dir="${script_path%/*}"
-ns_dir_path=$(realpath "${script_dir}/../../")
-
-PATH="${PATH}:${ns_dir_path}:${script_dir}"; \
-    . ns init
+. "${script_path%/*}/../setup"
 
 exp_a=a
 
