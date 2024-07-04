@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# SPEC TYPE=FTR VIEW INPUT PIPE
+# tag=html
+# . ns view-piped << 'EOF'
+# <$tag></$tag>
+# EOF
+# =>
+# <html></html>
+
+script_path=$(realpath -s "$0")
+script_dir="${script_path%/*}"
+ns_dir_path=$(realpath "${script_dir}/../../")
+
+PATH="${PATH}:${ns_dir_path}:${script_dir}"; \
+    . ns init
+
+tag=html
+res=`. ns view-piped << 'EOF'
+<$tag></$tag>
+EOF
+`
+
+expect=$(cat <<EOF
+<html></html>
+EOF
+)
+
+if [[ -n "$res" && "$res" == "$expect" ]]; then
+    :
+else
+    echo "fail => ${script_path}"
+    echo "${res} should be '${expect}'"
+fi
