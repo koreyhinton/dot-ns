@@ -1,0 +1,18 @@
+#!/bin/bash
+
+. ns import bd_find_pattern bd_change_pattern bd_in bd_out bd_ns bd_page
+# . ns #import "${bd_ns}"
+
+for f in `find ${bd_in} -name ${bd_find_pattern}`
+do
+    p1=$(echo "${bd_change_pattern}" | cut -d '=' -f1)
+    p2=$(echo "${bd_change_pattern}" | cut -d ">" -f2)
+    outname=$(basename "$f" | sed "s/${p1}/${p2}/")
+    outpath="${bd_out}/${outname}"
+    # echo "$f"
+    # echo "$outpath"
+    . ns view "$f" >"$outpath"
+    ((bd_page++))
+done
+
+. ns export bd_page

@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# SPEC TYPE=FTR DEMO PROGRAM (BASHDOC) WORKS
+
+script_path=$(realpath -s "$0")
+. "${script_path%/*}/../setup"
+
+NS_PATH="${NS_PATH}:${ns_dir_path}/ns_bin"
+
+bd_find_pattern='*_md'
+bd_change_pattern="_md=>.md"
+bd_in="${script_dir}/doc"
+bd_out="${ns_dir_path}/doc"
+# bd_ns='nsdoc_*'
+bd_page=1
+
+nsdoc_setup=$(cat << 'EOF'
+```sh
+NS_PATH="\${PWD}"
+. ns init
+mkdir -p ns_bin${bd_page}
+cd ns_bin${bd_page}
+```
+EOF
+)
+
+nsdoc_cleanup=$(cat << 'EOF'
+```sh
+cd ..
+```
+EOF
+)
+
+
+# . ns export 'nsdoc_*'
+
+. ns run bashdoc
+ec=$?
+
+ec=1  # todo: remove this once wildcard imports are implemented and working
+
+if [[ $ec -eq 0 ]]; then
+    :
+else
+    echo "fail => ${script_path}"
+    echo "${ec} (exit code) should be '0'"
+fi

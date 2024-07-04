@@ -29,7 +29,7 @@ if [[ "view" == "$subcommand" ]]; then
     view_path=$(NS_PATH="$NS_PATH" ns_which -x "$1")
     if [[ ! -f "$view_path" ]]; then
         echo "Error: '${1}' view file either does not exist or is requires removing the execute permission" 1>&2
-        exit 1
+        return 1
     fi
     view=$(cat "$view_path")
     view_cat="cat << EOF"$'\n'"${view}"$'\n'"EOF"$'\n'
