@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# SPEC TYPE=FTR VIEW FILES
+# . ns view json
+# =>
+# { "a": "b" }
+
+script_path=$(realpath -s "$0")
+script_dir="${script_path%/*}"
+ns_dir_path=$(realpath "${script_dir}/../../")
+
+PATH="${PATH}:${ns_dir_path}:${script_dir}"; \
+    . ns init
+
+# chmod +x json
+# which json
+key1="a"
+val1="b"
+keyval1='"obj": { "a": "b" }'
+res=`. ns view json`
+
+expect=$(cat <<EOF
+{
+    "$key1": "$val1",
+    "$keyval1"
+}
+EOF
+)
+
+if [[ -n "$res" && "$res" == "$expect" ]]; then
+    :
+else
+    echo "fail => ${script_path}"
+    echo "${res} should be '${expect}'"
+fi

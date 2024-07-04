@@ -25,6 +25,14 @@ elif [[ "$subcommand" == "run" ]]; then
     save_args="$@"
 fi
 
+if [[ "view" == "$subcommand" ]]; then
+    view_path=$(which "$1")
+    view=$(cat "$view_path")
+    view_cat="cat << EOF"$'\n'"${view}"$'\n'"EOF"$'\n'
+    eval "$view_cat"
+    return $?
+fi
+
 # for now assume 1 script has 1 ns import
 # todo: expand this later to do multiple ns import statements
 # also assume the full line is only this format: . ns import a b c
