@@ -1,0 +1,10 @@
+#!/bin/bash
+
+patt="$NS_PATT"
+ns_store="$NS_STORE"
+
+for name in `set | grep "^${patt}" | cut -d '=' -f1`
+do
+    val="${!name}"
+    echo "$val" > "${ns_store}/${name}"
+done

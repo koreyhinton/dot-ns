@@ -23,37 +23,6 @@ mkdir -p temp; PATH="${PATH}:${PWD}"; cd temp; PATH="${PATH}:${PWD}"; . ns init
 # then you can run the code
 . ns run my_script
 
-FEATURE 1 SPEC - SUMMARY - NS IMPORT/EXPORT CYCLE WORKS
-
-This feature specifies that variable(s) can be shared to another script and
-back again (full cycle), automatically applying the necessary imports and
-exports for the caller based on what the callee script has specified it intends
-to share (import/export).
-
-FEATURE 1 SPEC - EXAMPLE CODE
-
-# run this in dot-ns repo folder:
-mkdir -p temp; PATH="${PATH}:${PWD}"; cd temp; PATH="${PATH}:${PWD}"; . ns init
-
-# my_script's import line: retrieves my_var from storage
-# my_script's export line: saves my_var to storage
-cat << eof > my_script
-. ns import my_var
-my_var="\${my_var}c"
-. ns export my_var
-eof
-
-chmod +x my_script
-
-my_var=ab
-. ns run my_script     # before my_script invokes:
-#                      #     ns' run command will reads my_script's import line,
-#                      #     finds my_var and then saves it to storage
-#                      # after my_script invokes:
-#                      #     ns' run command will read my_script's export line
-#                      #     finds my_var and then retrieves it from storage
-echo "$my_var" # abc
-
 FEATURE 2 SPEC - SUMMARY - RECEIVE PIPE
 
 The run-piped command is used instead of run when you want to pipe stdin into

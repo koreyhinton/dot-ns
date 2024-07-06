@@ -1,0 +1,21 @@
+#!/bin/bash
+
+ns_auto_exp_lines="$NS_AUTO_LINES"
+
+SAVEIFS="$IFS"
+IFS=$'\n'
+for ns_exp_line in $ns_auto_exp_lines
+do
+    IFS="$SAVEIFS"
+    ns_exp_arr=($ns_exp_line)
+    . ns export "${ns_exp_arr[@]}" # must process each line separately and in 
+    #                              # order since a dynamic import might have
+    #                              # been declared that uses a variable name
+    #                              # via parameter expansion that was from a
+    #                              # a previous import.
+    #                              # e.g.:
+    #                              # . ns import 'wiki_*'
+    #                              # . ns import "${wiki_dep_namespace_patt}"
+    IFS=$'\n'
+done
+IFS="$SAVEIFS"

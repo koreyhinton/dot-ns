@@ -1,7 +1,7 @@
 #!/bin/bash
 
 . ns import bd_find_pattern bd_change_pattern bd_in bd_out bd_ns bd_page
-# . ns #import "${bd_ns}"
+. ns import "${bd_ns}"
 
 for f in `find ${bd_in} -name ${bd_find_pattern}`
 do

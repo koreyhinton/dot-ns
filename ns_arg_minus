@@ -1,0 +1,13 @@
+#!/bin/bash
+
+ns_lhs="$NS_LHS"
+ns_rhs="$NS_RHS"
+
+for arg in $ns_lhs
+do
+    cnt=$(echo "$ns_rhs" | grep "$arg" | wc -l)
+    if [[ $cnt -eq 0 ]]; then
+        echo "$arg"
+    fi
+done
+

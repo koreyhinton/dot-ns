@@ -1,1 +1,5 @@
 Page: ${bd_page}
+
+
+${nsdoc_setup}
+test

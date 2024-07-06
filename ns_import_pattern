@@ -1,0 +1,11 @@
+#!/bin/bash
+
+patt="$NS_PATT"
+ns_store="$NS_STORE"
+
+for f in `find ${ns_store} -name $patt` # `set | grep "^${patt}" | cut -d '=' -f1`
+do
+    name=$(basename "$f")
+    val=$(cat "${ns_store}/${name}")
+    export "${name}=${val}"
+done
