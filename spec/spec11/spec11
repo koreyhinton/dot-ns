@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# SPEC TYPE=FTR DEMO PROGRAM (EOS) WORKS
+# uses source-piped to be able to run on its own shell process (if chosen)
+# End-Of-Shell written as a single file
+# using '. ns delete' to clear variables (limiting a variable's scope)
+
+# Also, asserts that . ns delete is working to remove variables (semi-equivalent
+# to variable going out of scope)
+
+script_path=$(realpath -s "$0")
+. "${script_path%/*}/../setup"
+
+NS_PATH="${NS_PATH}:${ns_dir_path}/ns_bin"
+
+eos_save_dir=/tmp/eos_save_dir
+
+outp=$(. ns source-piped eos << EOF
+echo "executed"
+echo "executed"
+@EOS
+y
+EOF
+)
+ec=$?
+
+# echo "$outp"
+wcl=$(echo "$outp" | wc -l)
+((wcl--))  # 'Saved as _'
+((wcl--))  # 'yes (subshell)'
+echo_cnt=$(echo "$outp" | grep -v "\.bash" | grep "echo" | wc -l)
+exec_cnt=$(echo "$outp" | grep -v "\.bash" | grep "executed" | wc -l)
+if [[ $ec -eq 0 && "$outp" =~ "executed" && $wcl -gt 1 && $echo_cnt -eq 0 && $exec_cnt -eq 2 ]]; then
+    :
+else
+    echo "fail => ${script_path}"
+    echo "${ec} (exit code) should be '0'"
+fi

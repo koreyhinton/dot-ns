@@ -1,0 +1,135 @@
+#!/bin/bash
+
+# End Of Shell
+# safely capture shell commands and then reason about what you typed or
+# copy-pasted by indicating an @EOS to stop shell capture
+# and then decide to run the saved script/snippet (as subshell or current
+# shell process or to cancel/not execute)
+
+# Pasting into this shell wrapper will prevent situations where the incorrect
+# contents are pasted into the shell, as well as auto-save as a script
+# that can be referenced or executed later.
+
+# This example is written as a single script of top-level statements,
+# using '. ns delete _' to safely clear variables out of the top-level var scope
+
+# SCRIPT DEPENDENCIES/CONFIGURATION
+if [[ -z "$NS_SHELL_PID" ]]; then
+    . ns init
+fi
+. ns import eos_save_dir
+if [[ -z "$eos_save_dir" ]]; then
+    eos_save_dir=/tmp/eos_save_dir
+fi
+mkdir -p "$eos_save_dir"
+
+# READ IN THE SCRIPT CONTENTS
+eos_script=
+while IFS= read -r line; do
+    if [[ "$line" == "@EOS" ]]; then
+        break
+    elif [[ -z "$eos_script" ]]; then
+        eos_script="$line"
+    else
+        eos_script="${eos_script}"$'\n'"${line}"
+    fi
+done < /dev/stdin
+
+# CALCULATE DATE PORTION OF EOS_CALCULATED_NAME
+eos_calculated_date=$(date +%Y%m%d)
+eos_calculated_date="${eos_calculated_date:2}"  # 240101
+
+# CALCULATE LETTER PORTION OF EOS_CALCULATED_NAME
+eos_calculated_name=
+LC_COLLATE=C
+eos_i=0
+eos_len=${#eos_script}
+eos_found_letter=0
+eos_last_char=
+while [[ $eos_i -lt $eos_len ]]
+do
+    if [[ $eos_found_letter -eq 0 && ! "${eos_script:$eos_i:1}" =~ [a-zA-Z] ]]; then
+        ((eos_i++))
+        continue
+    elif [[ $eos_found_letter -eq 0 && "${eos_script:$eos_i:1}" =~ [a-zA-Z] ]]; then
+        eos_calculated_name="${eos_script:$eos_i:1}"
+        eos_found_letter=1
+        eos_last_char="${eos_script:$eos_i:1}"
+    elif [[ ${#eos_calculated_name} -ge 16 ]]; then
+        break
+    elif [[ $eos_found_letter -gt 0 && "${eos_script:$eos_i:1}" =~ [a-zA-Z] && ! "$eos_last_char" =~ [a-zA-Z] ]]; then
+        eos_calculated_name="${eos_calculated_name}_${eos_script:$eos_i:1}"
+        eos_last_char="${eos_script:$eos_i:1}"
+    elif [[ $eos_found_letter -gt 0 && "${eos_script:$eos_i:1}" =~ [a-zA-Z] && "$eos_last_char" =~ [a-zA-Z] ]]; then
+        eos_calculated_name="${eos_calculated_name}${eos_script:$eos_i:1}"
+        eos_last_char="${eos_script:$eos_i:1}"
+    else
+        eos_last_char="${eos_script:$eos_i:1}"
+    fi
+    ((eos_i++))
+done
+. ns delete eos_i eos_len eos_found_letter eos_last_char LC_COLLATE
+if [[ -v eos_i || -n "$eos_i" ]]; then # assertion, testing ns delete is working
+    echo "Error!: ns delete is broken." >&2
+    return 1
+fi
+
+# CALCULATE NUMERIC PORTION OF EOS_CALCULATED_NAME
+eos_calculated_num=1
+eos_existing=$(find "${eos_save_dir}" -name "${eos_calculated_date}_${eos_calculated_name}_"$'*')
+for f in $eos_existing
+do
+    bnm=$(basename "$f")
+    num=$(echo "$bnm" | sed "s/${eos_calculated_date}_${eos_calculated_name}_//" | sed "s/\.bash//")
+    is_num=0
+    if [[ "$num" -eq "$num" ]]; then
+        is_num=1
+    fi
+    if [[ $is_num -eq 1 && $num -ge $eos_calculated_num ]]; then
+        eos_calculated_num=$((num+1))
+    fi
+done
+. ns delete eos_existing
+
+# WRITE THE SCRIPT CONTENTS TO FILE
+eos_script_path="${eos_save_dir}/${eos_calculated_date}_${eos_calculated_name}_${eos_calculated_num}.bash"
+valid_path=1
+if [[ -f "$eos_script_path" ]]; then
+    echo "error!: file already exists. file: ${eos_script_path}" >&2
+    valid_path=0
+fi
+if [[ $valid_path -eq 1 ]]; then
+    echo "#!/bin/bash" >> "${eos_script_path}"
+    echo "$eos_script" >> "${eos_script_path}"
+    chmod +x "$eos_script_path"
+fi
+. ns delete eos_script eos_calculated_date eos_calculated_name eos_calculated_num
+if [[ $valid_path -eq 0 ]]; then
+    return 1
+fi
+
+# echo "name: ${eos_script_path}"
+# echo "$eos_script"
+
+# PROMPT FOR EXECUTION
+prompt=$(cat << EOF
+
+Execute the script? 
+  Y for subshell execution
+  . for this shell process execution
+  N to cancel 
+[Y/n/.] 
+EOF
+)
+
+echo "Saved as ${eos_script_path}"
+IFS= read -p "$prompt" ans
+if [[ "$ans" == "y" || "$ans" == "Y" ]]; then
+    echo "yes (subshell)"
+    "${eos_script_path}"
+elif [[ "$ans" == "." ]]; then
+    echo "yes (source)"
+    . "${eos_script_path}"
+elif [[ "$ans" == "n" || "$ans" == "N" ]]; then
+    echo "no"
+fi

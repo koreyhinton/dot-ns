@@ -15,7 +15,7 @@ subcommand="$1"
 shift;
 
 # save_subcommand=
-if [[ "$subcommand" == "run-piped" ]]; then
+if [[ "$subcommand" == "run-piped" || "$subcommand" == "source-piped" ]]; then
     save_subcommand="$subcommand"
     save_argc=$#
     save_args="$@"
@@ -44,7 +44,7 @@ if [[ "view-piped" == "$subcommand" ]]; then
     return $?
 fi
 
-if [[ "run" == "$subcommand" || "run-piped" == "$subcommand" ]]; then
+if [[ "run" == "$subcommand" || "run-piped" == "$subcommand" || "source-piped" == "$subcommand" ]]; then
     script=$(NS_PATH="$NS_PATH" ns_which +x "$1")
     leading=". ns import "
     import_lines=$(grep "^${leading}" "$script" | sed "s/^${leading}//")
@@ -62,6 +62,8 @@ if [[ "run" == "$subcommand" || "run-piped" == "$subcommand" ]]; then
         pipe_chain="cat|${pipe_chain}"
         eval "$pipe_chain"
         # "$script" </dev/stdin
+    elif [[ "source-piped" == "$save_subcommand" && $save_argc -eq 1 ]]; then
+        . "$script" < /dev/stdin
     elif [[ "run" == "$save_subcommand" && $save_argc -gt 1 ]]; then
         pipe_chain=$(NS_PATH="$NS_PATH" ARGS="${save_args}" ns_args_to_pipes)
         eval "$pipe_chain"
