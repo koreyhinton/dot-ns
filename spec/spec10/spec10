@@ -21,10 +21,11 @@ nsdoc_setup=$(cat << EOF
 # execute this command command once in the dot-ns repo folder:
 export PATH="\${PATH}:\${PWD}"
 
-NS_PATH="\${PWD}"
 . ns init
 mkdir -p ns_bin${bd_page}
 cd ns_bin${bd_page}
+NS_PATH="\${PWD}"
+
 \`\`\`
 EOF
 )

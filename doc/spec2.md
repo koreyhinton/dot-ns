@@ -9,10 +9,11 @@ the script.
 # execute this command command once in the dot-ns repo folder:
 export PATH="${PATH}:${PWD}"
 
-NS_PATH="${PWD}"
 . ns init
 mkdir -p ns_bin1
 cd ns_bin1
+NS_PATH="${PWD}"
+
 ```
 
 my_script file (+x permission)
@@ -37,7 +38,7 @@ line 1 read from right to left prints test as a process substitution, then redir
 
 line 2 will print 'test' from the my_var variable that run-piped has automatically set from export storage
 
-Note: `echo test | . ns run-piped my_script` will not work since it will use storage associated with a subshell process id and then won't find that value when you try to `echo ""`. So, instead you can use <(process substitution) and pipe that as stdin: <
+Note: `echo test | . ns run-piped my_script` will not work since it will use storage associated with a subshell process id and then won't find that value when you try to `echo "$my_var"`. So, instead you can use <(process substitution) and pipe that as stdin: <
 
 ```sh
 cd ..
