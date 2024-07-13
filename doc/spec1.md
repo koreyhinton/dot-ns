@@ -26,6 +26,7 @@ my_var="${my_var}c"  # 2
 ```
 
 line 1 retrieves my_var from storage
+
 line 3 saves my_var to storage
 
 my_script just appends c to the my_var variable.
@@ -50,3 +51,5 @@ After my_script invokes:
 ```sh
 cd ..
 ```
+
+Page: 1

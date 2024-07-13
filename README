@@ -23,35 +23,6 @@ mkdir -p temp; PATH="${PATH}:${PWD}"; cd temp; PATH="${PATH}:${PWD}"; . ns init
 # then you can run the code
 . ns run my_script
 
-FEATURE 2 SPEC - SUMMARY - RECEIVE PIPE
-
-The run-piped command is used instead of run when you want to pipe stdin into
-the script.
-
-FEATURE 2 SPEC - EXAMPLE CODE
-
-# run this in dot-ns repo folder:
-mkdir -p temp; PATH="${PATH}:${PWD}"; cd temp; PATH="${PATH}:${PWD}"; . ns init
-
-# <&0 line will read from stdin file descriptor and store in my_var
-# export line saves my_var to storage so that run, run-piped, or import
-#     commands can bring it back to memory
-cat << eof > my_script
-read my_var <&0
-. ns export my_var
-eof
-
-chmod +x my_script
-
-. ns run-piped my_script < <(echo test)
-echo "$my_var" # test (and
-#              # run-piped automatically set this variable from export storage)
-
-# note: `echo test | . ns run-piped my_script` will not work since it will
-#     use storage associated with a subshell process id and then won't find
-#     that value when you try to `echo "$my_var"`.
-#     So, instead you can use <(process substitution) and pipe that as stdin: <
-
 FEATURE 3 SPEC - SUMMARY - PIPE TO EXTERNAL PROGRAM
 
 The output from ns run (or run-piped if taking in input), should be able to be

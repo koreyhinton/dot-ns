@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# SPEC TYPE=FTR REMOVE VAR FROM SCOPE
+
+script_path=$(realpath -s "$0")
+. "${script_path%/*}/../setup"
+
+block1_failed=0
+block2_failed=0
+
+cb1_name="code block 1 name"
+cb1_count=0
+((cb1_count))
+. ns delete 'cb1_*'
+if [[ -v cb1_name || -n "$cb1_name" || -v cb1_count || -n "$cb1_count" ]]; then
+    block1_failed=1
+fi
+
+cb2_name="code block 2 name"
+. ns delete cb2_name
+if [[ -v cb2_name || -n "$cb2_name" ]]; then
+    block2_failed=1
+fi
+
+if [[ $block2_failed -eq 0 && $block1_failed -eq 0 ]]; then
+    :
+else
+    echo "fail => ${script_path}"
+    echo "${cb1_name}${cb1_count}${cb2_name} (exit code) should be ''"
+fi

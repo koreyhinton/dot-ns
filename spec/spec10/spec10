@@ -39,7 +39,7 @@ EOF
 
 # . ns export 'nsdoc_*'  # auto-export should happen
 
-. ns run bashdoc
+. ns run bashdoc > >(cat | "${script_dir}/write-index")
 ec=$?
 
 # ec=1  # todo: remove this once wildcard imports are implemented and working
