@@ -3,7 +3,7 @@
 ns_auto_exp_lines="$NS_AUTO_LINES"
 
 SAVEIFS="$IFS"
-IFS=$'\n'
+IFS=" "$'\n'
 for ns_exp_line in $ns_auto_exp_lines
 do
     IFS="$SAVEIFS"

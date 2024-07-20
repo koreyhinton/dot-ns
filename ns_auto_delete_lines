@@ -3,7 +3,7 @@
 ns_auto_del_lines="$NS_AUTO_LINES"
 
 SAVEIFS="$IFS"
-IFS=$'\n'
+IFS=" "$'\n'
 for ns_del_line in $ns_auto_del_lines
 do
     if [[ -z "$ns_del_line" ]]; then

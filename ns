@@ -48,6 +48,7 @@ if [[ "run" == "$subcommand" || "run-piped" == "$subcommand" || "source-piped" =
     script=$(NS_PATH="$NS_PATH" ns_which +x "$1")
     leading=". ns import "
     import_lines=$(grep "^${leading}" "$script" | sed "s/^${leading}//")
+    # echo "test imp lines ${import_lines}<EOL>" >&2
     NS_AUTO_LINES="$import_lines" . ns_auto_export_lines
     # exps=$(grep "$leading" "$script" | head -1)
     # exps="${exps:$leading_len}"
@@ -103,10 +104,12 @@ fi
 
 ns_store=/tmp/ns_${NS_SHELL_PID}
 
+saveIFS="$IFS"
+IFS=" "$'\n'
 while [[ -n "$1" ]]
 do
     par="$1"
-
+    # echo "partest: ${par}<END>" >&2
     if [[ "$par" =~ "\$" ]]; then
         par=$(eval "echo \"${par}\"") # dynamic import name,
         #                             # i.e., `. ns import "${bd_ns}"`
@@ -153,3 +156,4 @@ do
     shift;
 
 done
+IFS="${saveIFS}"
