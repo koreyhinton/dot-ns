@@ -2,10 +2,10 @@
 
 patt="$NS_PATT"
 ns_store="$NS_STORE"
-
-for name in `set | grep "^${patt}" | cut -d '=' -f1`
+patt=$(echo "${patt}" | sed 's/"//g')
+for del_name in `set | grep "^${patt}" | cut -d '=' -f1`
 do
-    rm "${ns_store}/${name}" 2>>/dev/null
-    export -n "$name"
-    unset "$name"
+    rm "${ns_store}/${del_name}" 2>>/dev/null
+    export -n "$del_name"
+    unset "$del_name"
 done

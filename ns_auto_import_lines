@@ -16,7 +16,7 @@ do
     #                              # e.g.:
     #                              # . ns import 'wiki_*'
     #                              # . ns import "${wiki_dep_namespace_patt}"
-    IFS=$'\n'
+    IFS=" "$'\n'
 done
 IFS="$SAVEIFS"
 

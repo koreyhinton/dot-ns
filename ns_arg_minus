@@ -5,6 +5,9 @@ ns_rhs="$NS_RHS"
 
 for arg in $ns_lhs
 do
+    if [[ "$arg" =~ '*' ]]; then
+        continue  # don't delete wildcards
+    fi
     cnt=$(echo "$ns_rhs" | grep "$arg" | wc -l)
     if [[ $cnt -eq 0 ]]; then
         echo "$arg"

@@ -6,8 +6,10 @@ SAVEIFS="$IFS"
 IFS=" "$'\n'
 for ns_exp_line in $ns_auto_exp_lines
 do
+    # echo "ns auto export line: $ns_exp_line" >&2
     IFS="$SAVEIFS"
     ns_exp_arr=($ns_exp_line)
+    # echo "ns auto export array: ${ns_exp_arr[@]}" >&2
     . ns export "${ns_exp_arr[@]}" # must process each line separately and in 
     #                              # order since a dynamic import might have
     #                              # been declared that uses a variable name
@@ -16,6 +18,6 @@ do
     #                              # e.g.:
     #                              # . ns import 'wiki_*'
     #                              # . ns import "${wiki_dep_namespace_patt}"
-    IFS=$'\n'
+    IFS=" "$'\n'
 done
 IFS="$SAVEIFS"

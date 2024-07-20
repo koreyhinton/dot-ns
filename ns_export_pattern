@@ -2,9 +2,10 @@
 
 patt="$NS_PATT"
 ns_store="$NS_STORE"
-
-for name in `set | grep "^${patt}" | cut -d '=' -f1`
+patt=$(echo "${patt}" | sed 's/"//g')
+for export_name in `set | grep "^${patt}" | cut -d '=' -f1`
 do
-    val="${!name}"
-    echo "$val" > "${ns_store}/${name}"
+    val="${!export_name}"
+    echo "$val" > "${ns_store}/${export_name}"
+    # echo "name:val ${export_name}:${val}" >&2
 done

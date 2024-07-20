@@ -91,7 +91,7 @@ if [[ "run" == "$subcommand" || "run-piped" == "$subcommand" || "source-piped" =
     #     . ns import namespace_pattern
     #     . ns import "${namespace_pattern}"
     del_lines=$(echo "$del_lines" | tac)
-
+    # echo "del_lines=${del_lines}<EOL>">&2
     NS_AUTO_LINES="$del_lines" . ns_auto_delete_lines
 
     # the script itself already ran an export at the end of the file,
@@ -132,13 +132,16 @@ do
         fi
     elif [[ "export" == "$subcommand" ]]; then
         # val=$(set | grep "${1}=" | head -1 | cut -d '=' -f2)
+        # echo "export ${name}" >&2
         if [[ "$name" =~ '*' ]]; then
+            # echo "export wildcard ${name}" >&2
             NS_PATT="$name" NS_STORE="$ns_store" . ns_export_pattern
         else
             val="${!name}"
             echo "$val" > "${ns_store}/${name}"
         fi
     elif [[ "import" == "$subcommand" ]]; then
+        # echo "import ${name}" >&2
         if [[ "$name" =~ '*' ]]; then
             # SAVEGLOBIGNORE="$GLOBIGNORE"
             # GLOBIGNORE="*"
