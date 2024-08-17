@@ -120,39 +120,39 @@ do
         fi
     fi
 
-    name="$par"
+    ns_name="$par"
 
     if [[ "delete" == "$subcommand" ]]; then
-        if [[ "$name" =~ '*' ]]; then
-            NS_PATT="$name" NS_STORE="$ns_store" . ns_delete_pattern
+        if [[ "$ns_name" =~ '*' ]]; then
+            NS_PATT="$ns_name" NS_STORE="$ns_store" . ns_delete_pattern
         else
-            rm "${ns_store}/${name}" 2>>/dev/null
-            export -n "$name"
-            unset "$name"
+            rm "${ns_store}/${ns_name}" 2>>/dev/null
+            export -n "$ns_name"
+            unset "$ns_name"
         fi
     elif [[ "export" == "$subcommand" ]]; then
         # val=$(set | grep "${1}=" | head -1 | cut -d '=' -f2)
-        # echo "export ${name}" >&2
-        if [[ "$name" =~ '*' ]]; then
-            # echo "export wildcard ${name}" >&2
-            NS_PATT="$name" NS_STORE="$ns_store" . ns_export_pattern
+        # echo "export ${ns_name}" >&2
+        if [[ "$ns_name" =~ '*' ]]; then
+            # echo "export wildcard ${ns_name}" >&2
+            NS_PATT="$ns_name" NS_STORE="$ns_store" . ns_export_pattern
         else
-            val="${!name}"
-            echo "$val" > "${ns_store}/${name}"
+            val="${!ns_name}"
+            echo "$val" > "${ns_store}/${ns_name}"
         fi
     elif [[ "import" == "$subcommand" ]]; then
-        # echo "import ${name}" >&2
-        if [[ "$name" =~ '*' ]]; then
+        # echo "import ${ns_name}" >&2
+        if [[ "$ns_name" =~ '*' ]]; then
             # SAVEGLOBIGNORE="$GLOBIGNORE"
             # GLOBIGNORE="*"
             # set -f  # echo "$-"
-            NS_PATT="$name" NS_STORE="$ns_store" . ns_import_pattern
+            NS_PATT="$ns_name" NS_STORE="$ns_store" . ns_import_pattern
             # set +f
             # GLOBIGNORE="$SAVEGLOBIGNORE"
         else
-            val=$(cat "${ns_store}/${name}")
-            export "${name}=${val}"
-            # echo "name=${name}, val=${val}."
+            val=$(cat "${ns_store}/${ns_name}")
+            export "${ns_name}=${val}"
+            # echo "ns_name=${ns_name}, val=${val}."
         fi
     fi
 

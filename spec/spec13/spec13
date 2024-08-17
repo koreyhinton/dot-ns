@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# SPEC TYPE=BUG DO NOT RESET REGULAR VAR NAMES
+
+script_path=$(realpath -s "$0")
+. "${script_path%/*}/../setup"
+
+name=test  # normal var name and not used by script at all, should not change
+
+foo=val
+exp_result="$name"
+. ns run no-op
+
+if [[ -n "$name" && "$name" == "$exp_result" ]]; then
+    :
+else
+    echo "fail => ${script_path}"
+    echo "\$name should be '${exp_result}' not ${name}"
+fi
