@@ -137,8 +137,8 @@ do
             # echo "export wildcard ${ns_name}" >&2
             NS_PATT="$ns_name" NS_STORE="$ns_store" . ns_export_pattern
         else
-            val="${!ns_name}"
-            echo "$val" > "${ns_store}/${ns_name}"
+            ns_val="${!ns_name}"
+            echo "$ns_val" > "${ns_store}/${ns_name}"
         fi
     elif [[ "import" == "$subcommand" ]]; then
         # echo "import ${ns_name}" >&2
@@ -150,9 +150,9 @@ do
             # set +f
             # GLOBIGNORE="$SAVEGLOBIGNORE"
         else
-            val=$(cat "${ns_store}/${ns_name}")
-            export "${ns_name}=${val}"
-            # echo "ns_name=${ns_name}, val=${val}."
+            ns_val=$(cat "${ns_store}/${ns_name}")
+            export "${ns_name}=${ns_val}"
+            # echo "ns_name=${ns_name}, val=${ns_val}."
         fi
     fi
 
