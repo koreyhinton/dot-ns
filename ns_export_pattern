@@ -6,6 +6,10 @@ patt=$(echo "${patt}" | sed 's/"//g')
 for export_name in `set | grep "^${patt}" | cut -d '=' -f1`
 do
     val="${!export_name}"
+    valenddex=${#val}; ((valenddex--))
+    if [[ "${val:$valenddex:1}" == $'\n' ]]; then
+        val="${val}{ns_nl}"  # newline gets lost
+    fi
     echo "$val" > "${ns_store}/${export_name}"
     # echo "name:val ${export_name}:${val}" >&2
 done

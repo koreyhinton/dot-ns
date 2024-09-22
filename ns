@@ -138,6 +138,10 @@ do
             NS_PATT="$ns_name" NS_STORE="$ns_store" . ns_export_pattern
         else
             ns_val="${!ns_name}"
+            ns_valenddex=${#ns_val}; ((ns_valenddex--))
+            if [[ "${ns_val:$ns_valenddex:1}" == $'\n' ]]; then
+                ns_val="${ns_val}{ns_nl}"  # newline gets lost
+            fi
             echo "$ns_val" > "${ns_store}/${ns_name}"
         fi
     elif [[ "import" == "$subcommand" ]]; then
@@ -151,6 +155,11 @@ do
             # GLOBIGNORE="$SAVEGLOBIGNORE"
         else
             ns_val=$(cat "${ns_store}/${ns_name}")
+            ns_nldex=${#ns_val}; ((ns_nldex-=7))
+            if [[ "${ns_val:$ns_nldex:7}" == "{ns_nl}" ]]; then
+                ns_enddex=$ns_nldex; ((ns_enddex--))
+                ns_val="${ns_val:0:$ns_enddex}"$'\n'
+            fi
             export "${ns_name}=${ns_val}"
             # echo "ns_name=${ns_name}, val=${ns_val}."
         fi

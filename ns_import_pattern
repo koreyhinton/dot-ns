@@ -7,5 +7,10 @@ for f in `find ${ns_store} -name "$patt"` # `set | grep "^${patt}" | cut -d '=' 
 do
     import_name=$(basename "$f")
     val=$(cat "${ns_store}/${import_name}")
+    nsnldex=${#val}; ((nsnldex-=7))
+    if [[ "${val:$nsnldex:7}" == "{ns_nl}" ]]; then
+        nsenddex=$nsnldex; ((nsenddex--))
+        val="${val:0:$nsenddex}"$'\n'
+    fi
     export "${import_name}=${val}"
 done
