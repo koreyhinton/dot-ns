@@ -6,6 +6,13 @@ if [[ "$1" == "init" ]]; then
     return 0;
 fi
 
+if [[ -z "$NS_SHELL_PID" ]]; then
+    export NS_SHELL_PID=$$
+    mkdir -p /tmp/ns_${NS_SHELL_PID}
+fi
+
+export NS_LAST_CMD
+
 # since init is handled above, the possible options are:
 #     run
 #     export
@@ -53,6 +60,8 @@ if [[ "run" == "$subcommand" || "run-piped" == "$subcommand" || "source-piped" =
     # exps=$(grep "$leading" "$script" | head -1)
     # exps="${exps:$leading_len}"
     # exps_arr=($exps)
+
+    NS_LAST_CMD="${script}"
 
     # . ns export "${exps_arr[@]}"
     if [[ "run-piped" == "$save_subcommand" && $save_argc -eq 1 ]]; then
