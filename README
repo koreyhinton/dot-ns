@@ -23,6 +23,26 @@ mkdir -p temp; PATH="${PATH}:${PWD}"; cd temp; PATH="${PATH}:${PWD}"; . ns init
 # then you can run the code
 . ns run my_script
 
+VARIABLE CHECKER
+
+1. Install dot-ns
+
+>    . ns.profile
+
+2. Install bash-parser node dependency:
+
+>    cd js
+>    npm install
+>    npm run build
+
+3. Test varcheck:
+
+>    cd ..
+>    vc_file=spec/spec14/vc_fail
+>    . ns run varcheck
+
+Variable error will be produced (VARIABLE ERROR). If a general error (ERROR) was produced variable checker was not set-up properly, so closely review the error message and the install steps.
+
 FEATURE 3 SPEC - SUMMARY - PIPE TO EXTERNAL PROGRAM
 
 The output from ns run (or run-piped if taking in input), should be able to be
