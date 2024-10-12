@@ -1,0 +1,67 @@
+#!/bin/bash
+
+# SPEC TYPE=FTR VAR CHECKER
+
+script_path=$(realpath -s "$0")
+. "${script_path%/*}/../setup"
+
+NS_PATH="${NS_PATH}:${ns_dir_path}/ns_bin"
+
+# TEST1: nsvc_spec_test is not set
+vc_file="${script_path%/*}/vc_test"
+vc_args=""
+varNotSet=$(. ns run varcheck 2>&1 | grep VariableNotSetError | wc -l)
+. ns run varcheck 2>/dev/null 1>/dev/null  # re-run to get the exit code
+ec=$?
+
+if [[ $varNotSet -gt 0 && $ec -gt 0 ]]; then
+    :
+else
+    echo "fail => ${script_path}"
+    echo "nsvc_spec_test should fail for VariableNotSetError"
+fi
+
+# TEST2: nsvc_spec_test is set (technically, specified as having being set)
+vc_file="${script_path%/*}/vc_test"
+vc_args=nsvc_spec_test
+varNotSet=$(. ns run varcheck 2>&1 | grep VariableNotSetError | wc -l)
+. ns run varcheck 2>/dev/null 1>/dev/null  # re-run to get the exit code
+ec=$?
+if [[ $varNotSet -eq 0 && $ec -eq 0 ]]; then
+    :
+else
+    echo "fail => ${script_path}"
+    echo "nsvc_spec_test with var set should pass without VariableNotSetError"
+fi
+
+# TEST3: nsvc_spec_test is not set in wrapper script
+vc_file="${script_path%/*}/vc_test_wrap3"
+vc_args=""
+varNotSet=$(. ns run varcheck 2>&1 | grep VariableNotSetError | wc -l)
+. ns run varcheck 2>/dev/null 1>/dev/null  # re-run to get the exit code
+ec=$?
+
+if [[ $varNotSet -gt 0 && $ec -gt 0 ]]; then
+    :
+else
+    echo "fail => ${script_path}"
+    echo "nsvc_spec_test not set in wrapper should fail for VariableNotSetError"
+fi
+
+
+# TEST4: nsvc_spec_test is set in wrapper
+vc_file="${script_path%/*}/vc_test_wrap"
+vc_args=""
+varNotSet=$(. ns run varcheck 2>&1 | grep VariableNotSetError | wc -l)
+. ns run varcheck 2>/dev/null 1>/dev/null  # re-run to get the exit code
+ec=$?
+if [[ $varNotSet -eq 0 && $ec -eq 0 ]]; then
+    :
+else
+    echo "fail => ${script_path}"
+    echo "nsvc_spec_test manual set should pass without VariableNotSetError"
+fi
+
+
+# TEST5: nsvc_spec_test is set in wrapper but then deleted before import
+

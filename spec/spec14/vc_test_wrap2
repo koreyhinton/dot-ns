@@ -1,0 +1,5 @@
+#!/bin/bash
+
+nsvc_spec_test=Y
+. ns delete nsvc_spec_test
+. ns run vc_test

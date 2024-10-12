@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. ns import vc_file
+. ns import vc_file vc_args
 
 script_name=$(basename "$NS_LAST_CMD")
 
@@ -23,6 +23,11 @@ if [[ -z "$vc_file" || ! -f "$vc_file" || ! -x "$vc_file" ]]; then
 fi
 
 path=$(realpath "$vc_file")
-npm run --prefix "$VC_JS_DIR" main "$path"
+npm run --prefix "$VC_JS_DIR" main "$path" "$vc_args"
+ec=$?
+
+if [[ $ec -gt 0 ]]; then
+    exit 1;
+fi
 
 . ns export vc_file

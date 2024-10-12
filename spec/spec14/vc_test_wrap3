@@ -1,0 +1,3 @@
+#!/bin/bash
+
+. ns run vc_test
