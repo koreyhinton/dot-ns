@@ -6,6 +6,7 @@ import { parse } from '@ein/bash-parser';
 
 global.structuredClone = (val) => JSON.parse(JSON.stringify(val));
 
+
 interface Memory {
     vars: string[];
 }
@@ -25,6 +26,27 @@ interface Env {
     scripts: Script[];
 }
 
+function parserBugsCodeRewrite(code: string): string {
+    /*
+        Remove comment lines, because:
+            splitting
+                > # $'\n'
+            becomes syntax error
+                > # '
+                > '
+            however, don't remove parameter length expansion:
+                > ${#str}
+
+        Parser Fails to Parse:
+            > IFS=$'\n'
+        Replacement:
+            > IFS='
+            > '
+    */
+    return code.replaceAll(/[^{][#]+.*$/gm, "").replaceAll("$'\\n'",`'
+'`);
+}
+
 function isCommandNsScriptInvocation(c: any): boolean {
     return c?.name?.text == '.' && c?.suffix?.length >= 3 && c.suffix[0].text == 'ns' && c.suffix[1].text == 'run' && c.suffix[2].text.length > 0;
 }
@@ -33,8 +55,16 @@ function isCommandImport(c: any): boolean {
     return c?.name?.text != null && c?.suffix != null && c.name.text == '.' && c.suffix.length > 2 && c.suffix[0].text == 'ns' && c.suffix[1].text == 'import';
 }
 
-function isCommandAssignment(c: any): boolean {
+function isCommandSingleAssignment(c: any): boolean {
     return c.prefix != null && c.prefix.length == 1 && c.prefix[0].type == 'AssignmentWord';
+}
+
+function isCommandMultiAssignment(c: any): boolean {
+    return c.prefix != null && c.prefix.length > 1 && c.prefix.filter((o: any) => o.type == 'AssignmentWord').length > 1;
+}
+
+function isCommandDelete(c: any): boolean {
+    return c?.name?.text != null && c?.suffix != null && c.name.text == '.' && c.suffix.length >= 3 && c.suffix[0].text == 'ns' && c.suffix[1].text == 'delete';
 }
 
 const checkCommand = async (c: any, script: Script, vars: string[], env: Env) => {
@@ -48,8 +78,14 @@ const checkCommand = async (c: any, script: Script, vars: string[], env: Env) =>
         /*if (!pass) {
             console.log('child script failed', env.scripts[1].errors);
         }*/
-    } else if (isCommandAssignment(c)) {
+    } else if (isCommandSingleAssignment(c)) {
         vars.push(c.prefix[0].text.split("=")[0]);
+    } else if (isCommandMultiAssignment(c)) {
+        for (var i=0; i<c.prefix.length; i++) {
+            if (c.prefix[i].type == "AssignmentWord") {
+                vars.push(c.prefix[i].text.split("=")[0]);
+            }
+        }
     } else if (isCommandImport(c)) {
         //var prompt = env.scriptNo == 1;
         for (var i=2; i<c.suffix.length; i++) {
@@ -60,6 +96,19 @@ const checkCommand = async (c: any, script: Script, vars: string[], env: Env) =>
                 });
             }
             //console.log("var:", c.suffix[i].text);
+        }
+    } else if (isCommandDelete(c)) {
+        for (var i=2; i<c.suffix.length; i++) {
+            var varName = c.suffix[i].text;
+            if (vars.indexOf(varName)<0)
+            {
+                script.errors.push({
+                    type: "VariableNotSetError",
+                    message: `Script: ${script.name}, deletes variable: '${c.suffix[i].text}' which is not defined.`
+                });
+            } else {
+                vars.splice(vars.indexOf(varName), 1);
+            }
         }
     }
     return true;
@@ -88,9 +137,11 @@ async function run(scriptName: string, ast: any, env: Env) {
 
 const varcheck = async (path: any, env: Env): Promise<boolean> => {
     var bashContent = fs.readFileSync(path, {encoding: 'utf8'});
+    var parserSafeBashContent = parserBugsCodeRewrite(bashContent);
     //console.log(bashContent);
     //parse(bashContent);
-    var ast = await parse(bashContent, {mode: 'bash'});
+    //console.log(parserSafeBashContent);
+    var ast = await parse(parserSafeBashContent, {mode: 'bash'});
     await run(path, ast, env);
     return env.scripts.filter(s => s.errors.length > 0).length == 0;
 }

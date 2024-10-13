@@ -64,4 +64,56 @@ fi
 
 
 # TEST5: nsvc_spec_test is set in wrapper but then deleted before import
+vc_file="${script_path%/*}/vc_test_wrap2"
+vc_args=""
+varNotSet=$(. ns run varcheck 2>&1 | grep VariableNotSetError | wc -l)
+. ns run varcheck 2>/dev/null 1>/dev/null  # re-run to get the exit code
+ec=$?
 
+if [[ $varNotSet -gt 0 && $ec -gt 0 ]]; then
+    :
+else
+    echo "fail => ${script_path}"
+    echo "nsvc_spec_test deleted in wrapper should fail for VariableNotSetError"
+fi
+
+# TEST6: nsvc_spec_test is not set and then deleted
+vc_file="${script_path%/*}/vc_test2"
+vc_args=""
+varNotSet=$(. ns run varcheck 2>&1 | grep VariableNotSetError | wc -l)
+. ns run varcheck 2>/dev/null 1>/dev/null  # re-run to get the exit code
+ec=$?
+
+if [[ $varNotSet -gt 0 && $ec -gt 0 ]]; then
+    :
+else
+    echo "fail => ${script_path}"
+    echo "nsvc_spec_test deleted in wrapper should fail for VariableNotSetError"
+fi
+
+# TEST7: nsvc_spec_test2 is set via multi-assign in wrapper
+vc_file="${script_path%/*}/vc_test_wrap4"
+vc_args=""
+varNotSet=$(. ns run varcheck 2>&1 | grep VariableNotSetError | wc -l)
+. ns run varcheck 2>/dev/null 1>/dev/null  # re-run to get the exit code
+ec=$?
+if [[ $varNotSet -eq 0 && $ec -eq 0 ]]; then
+    :
+else
+    echo "fail => ${script_path}"
+    echo "nsvc_spec_test multi-set should pass without VariableNotSetError"
+fi
+
+# TEST8: nsvc_spec_test is multi-set in wrapper but then multi-deleted before import
+vc_file="${script_path%/*}/vc_test_wrap5"
+vc_args=""
+varNotSet=$(. ns run varcheck 2>&1 | grep VariableNotSetError | wc -l)
+. ns run varcheck 2>/dev/null 1>/dev/null  # re-run to get the exit code
+ec=$?
+
+if [[ $varNotSet -gt 0 && $ec -gt 0 ]]; then
+    :
+else
+    echo "fail => ${script_path}"
+    echo "nsvc_spec_test multi-deleted in wrapper should fail for VariableNotSetError"
+fi

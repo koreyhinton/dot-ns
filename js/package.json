@@ -11,8 +11,8 @@
     "typescript": "tsc"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Korey Hinton",
+  "license": "AGPL-3.0",
   "devDependencies": {
     "@types/node": "^22.7.4",
     "babel-polyfill": "^6.26.0",
