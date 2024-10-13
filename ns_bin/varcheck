@@ -1,0 +1,33 @@
+#!/bin/bash
+
+. ns import vc_file vc_args
+
+script_name=$(basename "$NS_LAST_CMD")
+
+if [[ -z "$NS_LAST_CMD" || -z "$NS_PATH" || -z "$NS_SHELL_PID" || "${script_name}" != "varcheck" ]]; then
+    echo "ERROR: varcheck was not invoked via dot ns, re-run as:" >&2
+    echo "    . ns run varcheck" >&2
+    exit 1
+fi
+
+if [[ -z "$vc_file" || ! -f "$vc_file" || ! -x "$vc_file" ]]; then
+    if [[ -z "$vc_file" ]]; then
+        echo "ERROR: vc_file not set, re-run with vc_file var set" >&2
+    elif [[ ! -f "$vc_file" ]]; then
+        echo "ERROR: vc_file var set to '${vc_file}' and is not a regular file, re-run with vc_file set to a bash file path" >&2
+    elif [[ ! -x "$vc_file" ]]; then
+        echo "ERROR: vc_file var set to '${vc_file}' and is not an executable bash file, re-run after setting execute permission:" >&2
+        echo "    chmod +x \"${vc_file}\"" >&2
+    fi
+    exit 1;
+fi
+
+path=$(realpath "$vc_file")
+npm run --prefix "$VC_JS_DIR" main "$path" "$vc_args"
+ec=$?
+
+if [[ $ec -gt 0 ]]; then
+    exit 1;
+fi
+
+. ns export vc_file

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+. ns import nsvc_spec_test
+
+echo "${nsvc_spec_test}"
+

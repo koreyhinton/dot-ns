@@ -1,0 +1,6 @@
+#!/bin/bash
+
+nsvc_spec_test=Y
+. ns run vc_test
+
+

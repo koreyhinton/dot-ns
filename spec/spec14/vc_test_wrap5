@@ -1,0 +1,5 @@
+#!/bin/bash
+
+nsvc_spec_test2=Y nsvc_spec_test=Y 
+. ns delete nsvc_spec_test2 nsvc_spec_test_foo
+. ns run vc_test

@@ -1,0 +1,8 @@
+#!/bin/bash
+
+nsvc_spec_test=1 nsvc_spec_test2=2
+
+. ns run vc_test3
+
+
+
