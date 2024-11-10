@@ -1,0 +1,17 @@
+. ns import kv kv_key kv_val
+
+: ${kv:=}
+: ${kv_key:=}
+: ${kv_val:=}
+key="$kv_key"
+val="$kv_val"
+. ns run kv-take
+kv_key="$key"
+kv_val="$val"
+
+# only assign a key-value if both key and value have non-zero length in value
+if [[ -n "${kv_key}" && -n "${kv_val}" ]]; then
+    kv="${kv}{kv_key}${kv_key}{kv_val}${kv_val}"
+fi
+
+. ns export kv kv_key kv_val
