@@ -1,0 +1,31 @@
+. ns import kv kv_key
+
+: ${kv:=}
+: ${kv_key:=}
+kv_val=
+
+fullkeylen=${#kv_key}  # set to length of: {kv_key}my_key{kv_val}
+((fullkeylen+=16))     # ..
+i=0
+if [[ -z "${kv_key}" ]]; then
+    i=${#kv}  # don't look for a zero-length key that won't be there
+fi
+while [[ $i -lt ${#kv} ]]
+do
+    if [[ "${kv:$i:$fullkeylen}" == "{kv_key}${kv_key}{kv_val}" ]]; then
+        ((i+=fullkeylen))
+        kv_val=
+        while [[ $i -lt ${#kv} ]]
+        do
+            if [[ "${kv:$i:8}" == "{kv_key}" ]]; then
+                break
+            fi
+            kv_val="${kv_val}${kv:$i:1}"
+            ((i++))
+        done
+        break
+    fi
+    ((i++))
+done
+
+. ns export kv kv_key kv_val
