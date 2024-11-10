@@ -25,6 +25,7 @@ do
             kv_val="${kv_val}${kv:$i:1}"
             ((i++))
         done
+        continue
     else
         new_kv="${new_kv}${kv:$i:1}"
     fi
