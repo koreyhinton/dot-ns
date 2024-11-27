@@ -55,6 +55,10 @@ function isCommandImport(c: any): boolean {
     return c?.name?.text != null && c?.suffix != null && c.name.text == '.' && c.suffix.length > 2 && c.suffix[0].text == 'ns' && c.suffix[1].text == 'import';
 }
 
+function isCommandExport(c: any): boolean {
+    return c?.name?.text != null && c?.suffix != null && c.name.text == '.' && c.suffix.length > 2 && c.suffix[0].text == 'ns' && c.suffix[1].text == 'export';
+}
+
 function isCommandSingleAssignment(c: any): boolean {
     return c.prefix != null && c.prefix.length == 1 && c.prefix[0].type == 'AssignmentWord';
 }
@@ -96,6 +100,13 @@ const checkCommand = async (c: any, script: Script, vars: string[], env: Env) =>
                 });
             }
             //console.log("var:", c.suffix[i].text);
+        }
+    } else if (isCommandExport(c)) {
+        // console.warn("export", c);
+        for (var i=2; i<c.suffix.length; i++) {
+            if (vars.indexOf(c.suffix[i].text)<0) {
+                vars.push(c.suffix[i].text);
+            }
         }
     } else if (isCommandDelete(c)) {
         for (var i=2; i<c.suffix.length; i++) {
