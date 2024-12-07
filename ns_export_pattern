@@ -2,8 +2,9 @@
 
 patt="$NS_PATT"
 ns_store="$NS_STORE"
-patt=$(echo "${patt}" | sed 's/*/.*/g' | sed 's/"//g')
-for export_name in `set | grep "^${patt}" | cut -d '=' -f1`
+patt1=$(echo "${patt}"| sed 's/"//g')
+patt2=$(echo "${patt1}" | sed 's/*/.*/g')
+for export_name in `set | grep "^${patt1}" | grep "^${patt2}" | cut -d '=' -f1`
 do
     val="${!export_name}"
     valenddex=${#val}; ((valenddex--))
