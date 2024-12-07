@@ -3,6 +3,7 @@
 patt="$NS_PATT"
 ns_store="$NS_STORE"
 patt=$(echo "${patt}" | sed 's/"//g')
+
 for f in `find ${ns_store} -name "$patt"` # `set | grep "^${patt}" | cut -d '=' -f1`
 do
     import_name=$(basename "$f")

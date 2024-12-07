@@ -127,6 +127,7 @@ const checkCommand = async (c: any, script: Script, vars: string[], env: Env) =>
 
 async function checkScript(name: string, s: any, env: Env) {
     //env.scriptNo += 1;
+    //console.log("script: "+ name);
     var script = {name: name, errors: []};
     env.scripts.push(script);
     for (var i=0; i<s.commands.length; i++) {

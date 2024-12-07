@@ -2,7 +2,7 @@
 
 patt="$NS_PATT"
 ns_store="$NS_STORE"
-patt=$(echo "${patt}" | sed 's/"//g')
+patt=$(echo "${patt}" | sed 's/*/.*/g' | sed 's/"//g')
 
 for f in `find ${ns_store} -name "$patt"` # `set | grep "^${patt}" | cut -d '=' -f1`
 do
