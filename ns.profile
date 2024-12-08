@@ -17,3 +17,32 @@ if [[ $ec -gt 0 ]]; then
 fi
 
 export VC_JS_DIR="${ns_dir}/js"
+
+ns-compose() {
+    local var_name=$1
+    read -r -d '' "$var_name"
+}
+export -f ns-compose
+
+ns-delete() {
+    while [[ -n "$1" ]]
+    do
+        local var_name=$1
+        export -n "$var_name"
+        unset "$var_name"
+        shift
+    done
+}
+export -f ns-delete
+
+ns-run() {
+    local var_name
+    read -r -d '' var_name
+    eval "$var_name"
+}
+export -f ns-run
+
+ns-reuse() {
+    eval "${!1}"
+}
+export -f ns-reuse
