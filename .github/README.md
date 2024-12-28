@@ -28,6 +28,8 @@ ms-script1 # or run via 'ms' script namespace prefix (provided by ns-clone)
 
 Ideally, your library of bash functions when using the non-syntactic sugar syntax (. ns scriptname) would do best to reference the full script paths to avoid collisions of duplicate filenames in the NS_PATH variable. Soon, ns-clone will use functions instead of aliases so it can export the ms-* prefix versions down into subshells.
 
+Input variables can also be required, via `. ns require varname` at the top of the script file, and if the variable is not set before running running then it will prompt for it.
+
 # Inline Code Blocks
 
 Dot-ns' pursuit of building modular bash code resulted in the use of bash features that can make for inefficient code performance because of the heavy subshell usage and the unnecessary file i/o. While the unnecessary file i/o can be remediated with a large refactor effort, it would be hard to do so without duplicating the data (2x the memory).

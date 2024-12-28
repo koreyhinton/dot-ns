@@ -18,80 +18,100 @@ export NS_LAST_CMD
 #     export
 #     delete
 #     import
-subcommand="$1"
+ns_subcommand="$1"
 shift;
 
 # save_subcommand=
-if [[ "$subcommand" == "run-piped" || "$subcommand" == "source-piped" ]]; then
-    save_subcommand="$subcommand"
-    save_argc=$#
-    save_args="$@"
-elif [[ "$subcommand" == "run" ]]; then
-    save_subcommand="$subcommand"
-    save_argc=$#
-    save_args="$@"
+if [[ "$ns_subcommand" == "run-piped" || "$ns_subcommand" == "source-piped" ]]; then
+    ns_save_subcommand="$ns_subcommand"
+    ns_save_argc=$#
+    ns_save_args="$@"
+elif [[ "$ns_subcommand" == "run" ]]; then
+    ns_save_subcommand="$ns_subcommand"
+    ns_save_argc=$#
+    ns_save_args="$@"
 fi
 
-if [[ "view" == "$subcommand" ]]; then
-    view_path=$(NS_PATH="$NS_PATH" ns_which -x "$1")
-    if [[ ! -f "$view_path" ]]; then
+if [[ "view" == "$ns_subcommand" ]]; then
+    ns_view_path=$(NS_PATH="$NS_PATH" ns_which -x "$1")
+    if [[ ! -f "$ns_view_path" ]]; then
         echo "Error: '${1}' view file either does not exist or is requires removing the execute permission" 1>&2
         return 1
     fi
-    view=$(cat "$view_path")
-    view_cat="cat << EOF"$'\n'"${view}"$'\n'"EOF"$'\n'
-    eval "$view_cat"
+    ns_view=$(cat "$ns_view_path")
+    ns_view_cat="cat << EOF"$'\n'"${ns_view}"$'\n'"EOF"$'\n'
+    eval "$ns_view_cat"
     return $?
 fi
 
-if [[ "view-piped" == "$subcommand" ]]; then
-    view=$(cat)
-    view_cat="cat << EOF"$'\n'"${view}"$'\n'"EOF"$'\n'
-    eval "$view_cat"
+if [[ "view-piped" == "$ns_subcommand" ]]; then
+    ns_view=$(cat)
+    ns_view_cat="cat << EOF"$'\n'"${ns_view}"$'\n'"EOF"$'\n'
+    eval "$ns_view_cat"
     return $?
 fi
 
-if [[ "run" == "$subcommand" || "run-piped" == "$subcommand" || "source-piped" == "$subcommand" ]]; then
-    script=$(NS_PATH="$NS_PATH" ns_which +x "$1")
-    leading=". ns import "
-    import_lines=
-    if [[ -n "$script" ]]; then
-        import_lines=$(grep "^${leading}" "$script" | sed "s/^${leading}//")
+# RUN SUBCMD - REQUIRE+EXPORT+RUN+IMPORT
+if [[ "run" == "$ns_subcommand" || "run-piped" == "$ns_subcommand" || "source-piped" == "$ns_subcommand" ]]; then
+
+    ns_script=$(NS_PATH="$NS_PATH" ns_which +x "$1")
+
+    # RUN SUBCMD - (1) REQUIRE
+    ns_leading=". ns require "
+    ns_require_lines=
+    if [[ -n "$ns_script" ]]; then
+        ns_require_lines=$(grep "^${ns_leading}" "$ns_script" | sed "s/^${ns_leading}//")
     else
         echo "ns attempted to find an executable script, but 'ns_which ${1}' failed to locate it" 1>&2
         false
     fi
-    # echo "test imp lines ${import_lines}<EOL>" >&2
-    NS_AUTO_LINES="$import_lines" . ns_auto_export_lines
+    NS_AUTO_LINES="$ns_require_lines" . ns_auto_export_lines
+    # required vars use the same export line (-> import) as other vars
+
+    # RUN SUBCMD - (2) IMPORT LINES -> EXPORT
+    ns_leading=". ns import "
+    ns_import_lines=
+    if [[ -n "$ns_script" ]]; then
+        ns_import_lines=$(grep "^${ns_leading}" "$ns_script" | sed "s/^${ns_leading}//")
+    else
+        echo "ns attempted to find an executable script, but 'ns_which ${1}' failed to locate it" 1>&2
+        false
+    fi
+    # echo "test imp lines ${ns_import_lines}<EOL>" >&2
+    NS_AUTO_LINES="$ns_import_lines" . ns_auto_export_lines
     # exps=$(grep "$leading" "$script" | head -1)
     # exps="${exps:$leading_len}"
     # exps_arr=($exps)
 
-    NS_LAST_CMD="${script}"
+    # RUN SUBCMD - (3) RUN
+    NS_LAST_CMD="${ns_script}"
 
     # . ns export "${exps_arr[@]}"
-    if [[ "run-piped" == "$save_subcommand" && $save_argc -eq 1 ]]; then
-        "$script" </dev/stdin
+    if [[ "run-piped" == "$ns_save_subcommand" && $ns_save_argc -eq 1 ]]; then
+        "$ns_script" </dev/stdin
         # cat | "$script"
-    elif [[ "run-piped" == "$save_subcommand" && $save_argc -gt 1 ]]; then
-        pipe_chain=$(NS_PATH="$NS_PATH" ARGS="${save_args}" ns_args_to_pipes)
-        pipe_chain="cat|${pipe_chain}"
-        eval "$pipe_chain"
+    elif [[ "run-piped" == "$ns_save_subcommand" && $ns_save_argc -gt 1 ]]; then
+        ns_pipe_chain=$(NS_PATH="$NS_PATH" ARGS="${ns_save_args}" ns_args_to_pipes)
+        ns_pipe_chain="cat|${ns_pipe_chain}"
+        eval "$ns_pipe_chain"
         # "$script" </dev/stdin
-    elif [[ "source-piped" == "$save_subcommand" && $save_argc -eq 1 ]]; then
-        . "$script" < /dev/stdin
-    elif [[ "run" == "$save_subcommand" && $save_argc -gt 1 ]]; then
-        pipe_chain=$(NS_PATH="$NS_PATH" ARGS="${save_args}" ns_args_to_pipes)
-        eval "$pipe_chain"
+    elif [[ "source-piped" == "$ns_save_subcommand" && $ns_save_argc -eq 1 ]]; then
+        . "$ns_script" < /dev/stdin
+    elif [[ "run" == "$ns_save_subcommand" && $ns_save_argc -gt 1 ]]; then
+        ns_pipe_chain=$(NS_PATH="$NS_PATH" ARGS="${ns_save_args}" ns_args_to_pipes)
+        eval "$ns_pipe_chain"
     else
-        if [[ ! -x "$script" ]]; then
-            echo "ns run attempted for script (${script}) but does not have an execute permission" 1>&2
+        if [[ ! -x "$ns_script" ]]; then
+            echo "ns run attempted for script (${ns_script}) but does not have an execute permission" 1>&2
             false
         else
-           "$script" # || (echo "${script} failed ${save_args}" 1>>&2 2>>/dev/null)
+           "$ns_script" # || (echo "${ns_script} failed ${ns_save_args}" 1>>&2 2>>/dev/null)
         fi
     fi
-    ec=$?
+    ns_ec=$?
+
+    # RUN SUBCMD - (4) EXPORT LINES -> IMPORT
+    # Also handles deleting the script's imported variables that aren't exported
 
     # . ns delete "${exps_arr[@]}"
     # interesting bug..
@@ -101,54 +121,54 @@ if [[ "run" == "$subcommand" || "run-piped" == "$subcommand" || "source-piped" =
     #      and stdout was going to dev/null.
     #      Really, what is intended is to just delete the ones that don't get
     #      re-exported.
-    leading=". ns export "
-    export_lines=
-    if [[ -n "$script" ]]; then
-        export_lines=$(grep "^${leading}" "$script" | sed "s/^${leading}//")
+    ns_leading=". ns export "
+    ns_export_lines=
+    if [[ -n "$ns_script" ]]; then
+        ns_export_lines=$(grep "^${ns_leading}" "$ns_script" | sed "s/^${ns_leading}//")
     else
-        echo "ns could not find exports for script (${script})" 1>&2
+        echo "ns could not find exports for script (${ns_script})" 1>&2
         false
     fi
-    del_lines=$(NS_LHS="$import_lines" NS_RHS="$export_lines" ns_arg_minus)  # (lhs - rhs)
+    ns_del_lines=$(NS_LHS="$ns_import_lines" NS_RHS="$ns_export_lines" ns_arg_minus)  # (lhs - rhs)
     # delete must happen in reversed line order, otherwise resolving a parameter
     # expression will fail (and instead it tries to delete an empty variable)
     # i.e., should not delete namespace_pattern before myapp_*
     #     # namespace_pattern='myapp_*'
     #     . ns import namespace_pattern
     #     . ns import "${namespace_pattern}"
-    del_lines=$(echo "$del_lines" | tac)
+    ns_del_lines=$(echo "$ns_del_lines" | tac)
     # echo "del_lines=${del_lines}<EOL>">&2
-    NS_AUTO_LINES="$del_lines" . ns_auto_delete_lines
+    NS_AUTO_LINES="$ns_del_lines" . ns_auto_delete_lines
 
     # the script itself already ran an export at the end of the file,
     # now just importing it to make it available to the caller
-    NS_AUTO_LINES="$export_lines" . ns_auto_import_lines
+    NS_AUTO_LINES="$ns_export_lines" . ns_auto_import_lines
     # . ns import "${exps_arr[@]}"
 
-    return $ec
+    return $ns_ec
 fi
 
 ns_store=/tmp/ns_${NS_SHELL_PID}
 
-saveIFS="$IFS"
+ns_saveIFS="$IFS"
 IFS=" "$'\n'
 while [[ -n "$1" ]]
 do
-    par="$1"
+    ns_par="$1"
     # echo "partest: ${par}<END>" >&2
-    if [[ "$par" =~ "\$" ]]; then
-        par=$(eval "echo \"${par}\"") # dynamic import name,
+    if [[ "$ns_par" =~ "\$" ]]; then
+        ns_par=$(eval "echo \"${ns_par}\"") # dynamic import name,
         #                             # i.e., `. ns import "${bd_ns}"`
 
-        if [[ -z "$par" ]]; then  # get it from storage
-            cleaned_par=$(echo "$1" | sed 's/"//g' | sed 's/\$//g' | sed 's/{//g' | sed 's/}//g')
-            par="${!cleaned_par}"
+        if [[ -z "$ns_par" ]]; then  # get it from storage
+            ns_cleaned_par=$(echo "$1" | sed 's/"//g' | sed 's/\$//g' | sed 's/{//g' | sed 's/}//g')
+            ns_par="${!ns_cleaned_par}"
         fi
     fi
 
-    ns_name="$par"
+    ns_name="$ns_par"
 
-    if [[ "delete" == "$subcommand" ]]; then
+    if [[ "delete" == "$ns_subcommand" ]]; then
         if [[ "$ns_name" =~ '*' ]]; then
             NS_PATT="$ns_name" NS_STORE="$ns_store" . ns_delete_pattern
         else
@@ -156,7 +176,7 @@ do
             export -n "$ns_name"
             unset "$ns_name"
         fi
-    elif [[ "export" == "$subcommand" ]]; then
+    elif [[ "export" == "$ns_subcommand" ]]; then
         # val=$(set | grep "${1}=" | head -1 | cut -d '=' -f2)
         # echo "export ${ns_name}" >&2
         if [[ "$ns_name" =~ '*' ]]; then
@@ -170,7 +190,7 @@ do
             fi
             echo "$ns_val" > "${ns_store}/${ns_name}"
         fi
-    elif [[ "import" == "$subcommand" ]]; then
+    elif [[ "import" == "$ns_subcommand" ]]; then
         # echo "import ${ns_name}" >&2
         if [[ "$ns_name" =~ '*' ]]; then
             # SAVEGLOBIGNORE="$GLOBIGNORE"
@@ -189,9 +209,21 @@ do
             export "${ns_name}=${ns_val}"
             # echo "ns_name=${ns_name}, val=${ns_val}."
         fi
+    elif [[ "require" == "$ns_subcommand" ]]; then
+        ns_val=$(cat "${ns_store}/${ns_name}")
+        ns_nldex=${#ns_val}; ((ns_nldex-=7))
+        if [[ "${ns_val:$ns_nldex:7}" == "{ns_nl}" ]]; then
+            ns_enddex=$ns_nldex; ((ns_enddex--))
+            ns_val="${ns_val:0:$ns_enddex}"$'\n'
+        fi
+        export "${ns_name}=${ns_val}"
+        if [[ -z "$ns_val" ]]; then
+            read -p "${ns_name}: " "${ns_name}"
+            export "${ns_name}"
+        fi
     fi
 
     shift;
 
 done
-IFS="${saveIFS}"
+IFS="${ns_saveIFS}"
